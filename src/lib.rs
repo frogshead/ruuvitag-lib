@@ -1,7 +1,7 @@
 #![allow(dead_code)]
-
 pub mod ruuvitag {
-    use std::collections::HashMap;
+use std::collections::HashMap;
+
     #[derive(Debug, PartialEq, Eq)]
     pub enum TagError {
         UnknownManufacturerId,
@@ -10,19 +10,19 @@ pub mod ruuvitag {
 
     #[derive(Debug)]
     pub struct Tag {
-        id: u8,
-        humidity: f64,
-        temperature: f64,
-        pressure: u32,
-        acceleration: Acceleration,
-        battery_voltage: u16,
+        pub id: u8,
+        pub humidity: f64,
+        pub temperature: f64,
+        pub pressure: u32,
+        pub acceleration: Acceleration,
+        pub battery_voltage: u16,
     }
 
     #[derive(Debug)]
     pub struct Acceleration {
-        x: i16,
-        y: i16,
-        z: i16,
+        pub x: i16,
+        pub y: i16,
+        pub z: i16,
     }
 
     impl Tag {
@@ -59,6 +59,9 @@ pub mod ruuvitag {
     }
 }
 mod tests {
+    
+use ruuvitag::Tag;
+use std::collections::HashMap;
     // add code here
     #[test]
     fn parse_packet() {
