@@ -59,8 +59,8 @@ use std::collections::HashMap;
     }
 }
 mod tests {
-    
-use ruuvitag::Tag;
+ #![allow(dead_code)]   
+use ruuvitag;
 use std::collections::HashMap;
     // add code here
     #[test]
