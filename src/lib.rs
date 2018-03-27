@@ -7,7 +7,7 @@ pub enum TagError {
 }
 
 #[derive(Debug)]
-struct Tag {
+pub struct Tag {
     id: u8,
     humidity: f64, 
     temperature: f64,
