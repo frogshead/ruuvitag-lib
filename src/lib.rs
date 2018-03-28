@@ -1,4 +1,4 @@
-pub mod tag {
+pub mod ruuvitag {
 
 #![allow(dead_code)]
 use std::collections::HashMap;
