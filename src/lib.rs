@@ -11,7 +11,7 @@ pub enum TagError {
 
 #[derive(Debug)]
 pub struct Tag {
-    pub id: u8,
+    pub manufacturer_id: u8,
     pub humidity: f64,
     pub temperature: f64,
     pub pressure: u32,
@@ -34,8 +34,8 @@ impl Tag {
 
         let values = data.get(&0x0499).unwrap();
         let tag = Tag {
-            id: values[0],
-            humidity: (values[1] / 2) as f64,
+            manufacturer_id: values[0],
+            humidity: (values[1] as f64 / 2f64) as f64,
 
             //temperature: if ( values[2] & 0x80 == 0x80) { (-1 * (values[2] & 0x7f) as i8) as f64} else { (values[2] & 0x7f) as f64 } + ((values[3] as f64 * 0.01)),
             temperature: parse_temperature(values[2], values[3]),
@@ -69,13 +69,11 @@ mod tests {
     fn parse_packet() {
         let mut packet: HashMap<u16, Vec<u8>> = HashMap::new();
         packet.insert(
-            1177,
-            vec![3, 172, 5, 31, 192, 7, 2, 215, 2, 223, 255, 247, 11, 95],
-        );
+            1177,vec![3, 171, 5, 31, 192, 7, 2, 215, 2, 223, 255, 247, 11, 95]);
         assert_eq!(packet.len(), 1);
-        let tag_data = Tag::new(packet).unwrap();
-        assert_eq!(tag_data.id, 3);
-        assert_eq!(tag_data.humidity, 86 as f64);
+        let tag_data = ruuvitag::Tag::new(packet).unwrap();
+        assert_eq!(tag_data.manufacturer_id, 3);
+        assert_eq!(tag_data.humidity, 85.5 as f64);
         assert_eq!(tag_data.temperature, 5.31 as f64);
         assert_eq!(tag_data.pressure, 99159);
         assert_eq!(tag_data.acceleration.x, 0x2d7);
@@ -91,7 +89,7 @@ mod tests {
             0x123,
             vec![3, 172, 5, 31, 192, 7, 2, 215, 2, 223, 255, 247, 11, 95],
         );
-        assert_eq!(Tag::new(packet).is_err(), true);
+        assert_eq!(ruuvitag::Tag::new(packet).is_err(), true);
         //TODO:
         //assert_eq!(Tag::new(packet), TagError::UnknownManufacturerId);
     }
@@ -103,7 +101,7 @@ mod tests {
             1177,
             vec![3, 111, 133, 94, 198, 212, 2, 197, 2, 224, 255, 255, 11, 95],
         );
-        assert_eq!(Tag::new(packet).unwrap().temperature, -5.9399999999999995)
+        assert_eq!(ruuvitag::Tag::new(packet).unwrap().temperature, -5.9399999999999995)
     }
 
 }
