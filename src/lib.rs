@@ -2,6 +2,7 @@ pub mod ruuvitag {
 
 #![allow(dead_code)]
 use std::collections::HashMap;
+use std::option::Option;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TagError {
@@ -17,6 +18,7 @@ pub struct Tag {
     pub pressure: u32,
     pub acceleration: Acceleration,
     pub battery_voltage: u16,
+    pub mac: Option<String>
 }
 
 #[derive(Debug)]
@@ -36,8 +38,6 @@ impl Tag {
         let tag = Tag {
             manufacturer_id: values[0],
             humidity: (values[1] as f64 / 2f64) as f64,
-
-            //temperature: if ( values[2] & 0x80 == 0x80) { (-1 * (values[2] & 0x7f) as i8) as f64} else { (values[2] & 0x7f) as f64 } + ((values[3] as f64 * 0.01)),
             temperature: parse_temperature(values[2], values[3]),
             pressure: (((values[4] as u32) << 8) | values[5] as u32) + 50000,
             acceleration: Acceleration {
@@ -46,6 +46,7 @@ impl Tag {
                 z: (((values[10] as i16) << 8) | values[11] as i16),
             },
             battery_voltage: (((values[12] as u16) << 8) | values[13] as u16),
+            mac: None
         };
         Ok(tag)
     }
