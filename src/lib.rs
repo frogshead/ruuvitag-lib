@@ -1,6 +1,9 @@
-pub mod ruuvitag {
-
 #![allow(dead_code)]
+#[macro_use]
+extern crate serde_derive;
+extern crate serde;
+extern crate serde_json;
+
 use std::collections::HashMap;
 use std::option::Option;
 
@@ -10,6 +13,7 @@ pub enum TagError {
     UnknownPacketSpecification,
 }
 
+#[derive(Serialize, Deserialize)]
 #[derive(Debug)]
 pub struct Tag {
     pub manufacturer_id: u8,
@@ -21,6 +25,7 @@ pub struct Tag {
     pub mac: Option<String>
 }
 
+#[derive(Serialize, Deserialize)]
 #[derive(Debug)]
 pub struct Acceleration {
     pub x: i16,
@@ -59,20 +64,15 @@ fn parse_temperature(t_msb: u8, t_lsb: u8) -> f64 {
     }
     (integer as f64 + decimal)
 }
-}
-mod tests {
-    #![allow(dead_code)]
-    
-    use std::collections::HashMap;
-    use super::*;
-    // add code here
+
+
     #[test]
     fn parse_packet() {
         let mut packet: HashMap<u16, Vec<u8>> = HashMap::new();
         packet.insert(
             1177,vec![3, 171, 5, 31, 192, 7, 2, 215, 2, 223, 255, 247, 11, 95]);
         assert_eq!(packet.len(), 1);
-        let tag_data = ruuvitag::Tag::new(packet).unwrap();
+        let tag_data = Tag::new(packet).unwrap();
         assert_eq!(tag_data.manufacturer_id, 3);
         assert_eq!(tag_data.humidity, 85.5 as f64);
         assert_eq!(tag_data.temperature, 5.31 as f64);
@@ -90,9 +90,7 @@ mod tests {
             0x123,
             vec![3, 172, 5, 31, 192, 7, 2, 215, 2, 223, 255, 247, 11, 95],
         );
-        assert_eq!(ruuvitag::Tag::new(packet).is_err(), true);
-        //TODO:
-        //assert_eq!(Tag::new(packet), TagError::UnknownManufacturerId);
+        assert_eq!(Tag::new(packet).unwrap_err(), TagError::UnknownManufacturerId);
     }
 
     #[test]
@@ -102,7 +100,26 @@ mod tests {
             1177,
             vec![3, 111, 133, 94, 198, 212, 2, 197, 2, 224, 255, 255, 11, 95],
         );
-        assert_eq!(ruuvitag::Tag::new(packet).unwrap().temperature, -5.9399999999999995)
+        assert_eq!(Tag::new(packet).unwrap().temperature, -5.9399999999999995)
     }
 
-}
+    #[test]
+    fn post_json() {
+    extern crate reqwest;
+        let mut packet: HashMap<u16, Vec<u8>> = HashMap::new();
+        packet.insert(
+            1177,
+            vec![3, 111, 133, 94, 198, 212, 2, 197, 2, 224, 255, 255, 11, 95],
+        );
+        let tag = Tag::new(packet).unwrap();
+        let j = self::serde_json::to_string(&tag).unwrap();
+
+        let client = reqwest::Client::new();//  Client::new();
+        let res = client.post("http://localhost:8080/mjsonrust")
+            .json(&j)
+            .send().unwrap();
+        println!("{:?}", res);
+        assert!(res.status().is_success());
+    }
+
+

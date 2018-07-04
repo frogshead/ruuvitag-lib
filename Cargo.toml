@@ -4,4 +4,9 @@ version = "0.1.0"
 authors = ["Mikko Viitamäki <mikko.viitamaki+github@gmail.com>"]
 
 [dependencies]
+reqwest = "0.8.5"
+serde = "1.0"
+serde_json = "1.0"
+serde_derive = "1.0"
+json = "*"
 
