@@ -3,9 +3,13 @@
 extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
+extern crate reqwest;
 
 use std::collections::HashMap;
 use std::option::Option;
+
+use reqwest::{Client, Url};
+
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TagError {
@@ -55,6 +59,17 @@ impl Tag {
         };
         Ok(tag)
     }
+    pub fn post_json(url: String, data: Tag){
+        let j = self::serde_json::to_string(&data).unwrap();
+        let u = Url::parse(&url).unwrap();
+        let client = reqwest::Client::new();//  Client::new();
+        let res = client.post(u) //"http://localhost:8080/mjsonrust"
+            .json(&j)
+            .send().unwrap();
+        println!("{:?}", res);
+
+    }
+
 }
 fn parse_temperature(t_msb: u8, t_lsb: u8) -> f64 {
     let integer: u8 = 0x7F & t_msb;
@@ -64,6 +79,7 @@ fn parse_temperature(t_msb: u8, t_lsb: u8) -> f64 {
     }
     (integer as f64 + decimal)
 }
+
 
 
     #[test]
