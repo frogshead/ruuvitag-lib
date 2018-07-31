@@ -59,10 +59,10 @@ impl Tag {
         };
         Ok(tag)
     }
-    pub fn post_json(url: String, data: Tag){
+    pub fn post_json(url: &'static str, data: Tag){
         let j = self::serde_json::to_string(&data).unwrap();
         let u = Url::parse(&url).unwrap();
-        let client = reqwest::Client::new();//  Client::new();
+        let client = Client::new();//  Client::new();
         let res = client.post(u) //"http://localhost:8080/mjsonrust"
             .json(&j)
             .send().unwrap();
@@ -100,6 +100,16 @@ fn parse_temperature(t_msb: u8, t_lsb: u8) -> f64 {
     }
 
     #[test]
+    fn send_json(){
+          let mut packet: HashMap<u16, Vec<u8>> = HashMap::new();
+        packet.insert(
+            1177,vec![3, 171, 5, 31, 192, 7, 2, 215, 2, 223, 255, 247, 11, 95]);
+        assert_eq!(packet.len(), 1);
+        let tag_data = Tag::new(packet).unwrap();
+        self::Tag::post_json("http://localhost:8080/mjsonrust", tag_data);
+    }
+
+    #[test]
     fn invalid_manufacturer_id() {
         let mut packet: HashMap<u16, Vec<u8>> = HashMap::new();
         packet.insert(
@@ -120,7 +130,7 @@ fn parse_temperature(t_msb: u8, t_lsb: u8) -> f64 {
     }
 
     #[test]
-    fn post_json() {
+    fn post_json_test() {
     extern crate reqwest;
         let mut packet: HashMap<u16, Vec<u8>> = HashMap::new();
         packet.insert(
