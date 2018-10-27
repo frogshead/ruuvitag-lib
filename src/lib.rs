@@ -59,13 +59,14 @@ impl Tag {
         };
         Ok(tag)
     }
-    pub fn post_json(url: &'static str, data: Tag){
+    pub fn post_json(url: &str, data: Tag){
         let j = self::serde_json::to_string(&data).unwrap();
         let u = Url::parse(&url).unwrap();
-        let client = Client::new();//  Client::new();
-        let res = client.post(u) //"http://localhost:8080/mjsonrust"
-            .json(&j)
-            .send().unwrap();
+        let client = Client::new();
+                let res = client.post(u)    
+                .json(&j)
+                .send()
+                .unwrap();
         println!("{:?}", res);
 
     }
