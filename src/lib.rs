@@ -8,8 +8,6 @@ extern crate reqwest;
 use std::collections::HashMap;
 use std::option::Option;
 
-use reqwest::{Client, Url};
-
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TagError {
@@ -37,14 +35,25 @@ pub struct Acceleration {
     pub z: i16,
 }
 
+
+
 impl Tag {
     pub fn new(data: HashMap<u16, Vec<u8>>) -> Result<Tag, TagError> {
-        if !data.contains_key(&0x0499) {
-            return Err(TagError::UnknownManufacturerId);
+        match data.get(&0x0499){
+            
+            None => return Err(TagError::UnknownManufacturerId),
+            Some(values) => return Ok(get_values(values)),
         }
+    }
 
-        let values = data.get(&0x0499).unwrap();
-        let tag = Tag {
+    pub fn update(&mut self){
+        
+    }
+
+}
+
+fn get_values(values: &Vec<u8>) -> Tag {
+    Tag {
             manufacturer_id: values[0],
             humidity: (values[1] as f64 / 2f64) as f64,
             temperature: parse_temperature(values[2], values[3]),
@@ -56,21 +65,8 @@ impl Tag {
             },
             battery_voltage: (((values[12] as u16) << 8) | values[13] as u16),
             mac: None
-        };
-        Ok(tag)
-    }
-    pub fn post_json(url: &str, data: Tag){
-        let j = self::serde_json::to_string(&data).unwrap();
-        let u = Url::parse(&url).unwrap();
-        let client = Client::new();
-                let res = client.post(u)    
-                .json(&j)
-                .send()
-                .unwrap();
-        println!("{:?}", res);
 
     }
-
 }
 fn parse_temperature(t_msb: u8, t_lsb: u8) -> f64 {
     let integer: u8 = 0x7F & t_msb;
@@ -101,16 +97,6 @@ fn parse_temperature(t_msb: u8, t_lsb: u8) -> f64 {
     }
 
     #[test]
-    fn send_json(){
-          let mut packet: HashMap<u16, Vec<u8>> = HashMap::new();
-        packet.insert(
-            1177,vec![3, 171, 5, 31, 192, 7, 2, 215, 2, 223, 255, 247, 11, 95]);
-        assert_eq!(packet.len(), 1);
-        let tag_data = Tag::new(packet).unwrap();
-        self::Tag::post_json("http://localhost:8080/mjsonrust", tag_data);
-    }
-
-    #[test]
     fn invalid_manufacturer_id() {
         let mut packet: HashMap<u16, Vec<u8>> = HashMap::new();
         packet.insert(
@@ -128,25 +114,6 @@ fn parse_temperature(t_msb: u8, t_lsb: u8) -> f64 {
             vec![3, 111, 133, 94, 198, 212, 2, 197, 2, 224, 255, 255, 11, 95],
         );
         assert_eq!(Tag::new(packet).unwrap().temperature, -5.9399999999999995)
-    }
-
-    #[test]
-    fn post_json_test() {
-    extern crate reqwest;
-        let mut packet: HashMap<u16, Vec<u8>> = HashMap::new();
-        packet.insert(
-            1177,
-            vec![3, 111, 133, 94, 198, 212, 2, 197, 2, 224, 255, 255, 11, 95],
-        );
-        let tag = Tag::new(packet).unwrap();
-        let j = self::serde_json::to_string(&tag).unwrap();
-
-        let client = reqwest::Client::new();//  Client::new();
-        let res = client.post("http://localhost:8080/mjsonrust")
-            .json(&j)
-            .send().unwrap();
-        println!("{:?}", res);
-        assert!(res.status().is_success());
     }
 
 
